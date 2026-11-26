@@ -1,0 +1,25 @@
+// The browser build on https://pingrid.syntrope.app — dist/ served as
+// Cloudflare Workers Static Assets: no code runs, nothing is stored, every
+// check still happens in the visitor's browser.
+//
+// Deploy a release (from the repository root):
+//   npm run build
+//   npx wrangler deploy -c deploy/cloudflare/wrangler.jsonc
+//
+// The custom domain creates its own DNS record on the first deploy.
+{
+    "$schema": "https://unpkg.com/wrangler/config-schema.json",
+    "name": "pingrid-web",
+    "compatibility_date": "2026-11-01",
+
+    "assets": {
+        "directory": "../../dist"
+    },
+
+    "routes": [
+        { "pattern": "pingrid.syntrope.app", "custom_domain": true }
+    ],
+
+    "workers_dev": false,
+    "preview_urls": false
+}
