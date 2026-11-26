@@ -9,9 +9,9 @@
  * change), but expiry rules are evaluated on every check and by a timer set
  * for the exact moment of expiry.
  */
-import { actions, getState, subscribe } from '../lib/store';
+import { actions, getState, setState, subscribe } from '../lib/store';
 import { HISTORY_LEN } from '../lib/defaults';
-import { createChecker, type NetworkChecker } from '../platform/networkChecker';
+import { createChecker, type NetworkChecker, type ProxyStatus } from '../platform/networkChecker';
 import { dispatch } from '../platform/notifier';
 import { CONFIRM_RETRY_MS, DAY, daysLeft, dueAt, effectiveAutoRenew, evaluateSsl, isDue, isHttps, onFailure } from './rules';
 import type { Alert, AlertKind, CheckOutcome, Resource, ResourceStatus, Severity, SslInfo } from '../types';
@@ -41,6 +41,16 @@ const MAX_SLEEP_MS = 60_000;
 
 class Monitor {
   private checker: NetworkChecker = createChecker('');
+
+  /** Publish proxy health only when it changes, not on every check. */
+  private onProxyStatus = (s: ProxyStatus) => {
+    const cur = getState().proxyStatus;
+    if (cur && cur.ok === s.ok && cur.error === s.error) return;
+    setState({ proxyStatus: s });
+    // Proxy came back: re-read the certificates that failed while it was down
+    // rather than waiting for the 10-minute SSL retry.
+    if (cur && !cur.ok && s.ok) setTimeout(() => void this.runAll({ forceSsl: true }), 0);
+  };
   private tickTimer?: ReturnType<typeof setTimeout>;
   private planned: { resources?: unknown; settings?: unknown } = {};
   private confirmTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -145,10 +155,11 @@ class Monitor {
     this.started = true;
     if (settings.webProxyUrl !== this.proxy || firstRun) {
       this.proxy = settings.webProxyUrl;
-      const before = this.checker.kind;
-      this.checker = createChecker(this.proxy);
-      // New capabilities (e.g. a proxy that can read certificates): refresh now.
-      if (!firstRun && this.checker.kind !== before) void this.runAll({ forceSsl: true });
+      this.checker = createChecker(this.proxy, this.onProxyStatus);
+      setState({ proxyStatus: null });
+      // A different way of checking (added, removed or changed proxy): check
+      // everything now, certificates included, instead of at the next tick.
+      if (!firstRun) void this.runAll({ forceSsl: true });
     }
 
     // Re-plan only when what the schedule depends on changed; status patches

@@ -83,17 +83,67 @@ class WebChecker implements NetworkChecker {
  *   GET {base}/check?url=<url>&timeout=<ms>  -> { ok, status, latencyMs, error? }
  *   GET {base}/tls?host=<host>&port=<port>    -> SslInfo
  */
+/** The proxy itself failed (unreachable, refused, blocked by the browser), not the checked site. */
+export class ProxyDownError extends Error {}
+
+export interface ProxyStatus {
+  ok: boolean;
+  error?: string;
+  at: number;
+}
+
+/** After a proxy failure, go straight to direct checks for this long before trying it again. */
+export const PROXY_COOLDOWN_MS = 60_000;
+
 class ProxyChecker implements NetworkChecker {
   readonly kind = 'web-proxy' as const;
   readonly sslCapable = true;
-  constructor(private base: string) {}
+  private direct = new WebChecker();
+  private downUntil = 0;
+  private lastError = '';
 
-  private async get<T>(path: string, params: Record<string, string>, timeoutMs: number): Promise<T> {
+  constructor(
+    private base: string,
+    private onStatus?: (s: ProxyStatus) => void,
+  ) {}
+
+  private report(ok: boolean, error?: string) {
+    if (!ok) {
+      this.downUntil = Date.now() + PROXY_COOLDOWN_MS;
+      this.lastError = error ?? 'unavailable';
+    }
+    this.onStatus?.({ ok, error, at: Date.now() });
+  }
+
+  /**
+   * Calls the proxy. Throws ProxyDownError when the proxy is the problem;
+   * a plain Error only for a target failure the proxy reported (TLS 502).
+   */
+  private async get<T>(path: 'check' | 'tls', params: Record<string, string>, timeoutMs: number): Promise<T> {
+    if (Date.now() < this.downUntil) throw new ProxyDownError(this.lastError);
     const u = new URL(path, this.base.endsWith('/') ? this.base : this.base + '/');
     Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
-    const res = await withTimeout(timeoutMs + 3000, (signal) => fetch(u, { cache: 'no-store', signal }));
-    const body = (await res.json().catch(() => ({}))) as T & { error?: string };
-    if (!res.ok) throw new Error(body.error || `proxy HTTP ${res.status}`);
+    let res: Response;
+    try {
+      res = await withTimeout(timeoutMs + 3000, (signal) => fetch(u, { cache: 'no-store', signal }));
+    } catch (e) {
+      // Unreachable, timed out, or blocked by CORS / local-network rules.
+      const err = errText(e);
+      this.report(false, err);
+      throw new ProxyDownError(err);
+    }
+    const body = (await res.json().catch(() => null)) as (T & { error?: string }) | null;
+    // /tls answers 502 when the *target's* handshake fails: the proxy is fine.
+    if (path === 'tls' && res.status === 502 && body?.error) {
+      this.report(true);
+      throw new Error(body.error);
+    }
+    if (!res.ok || !body) {
+      const err = body?.error || `proxy HTTP ${res.status}`;
+      this.report(false, err);
+      throw new ProxyDownError(err);
+    }
+    this.report(true);
     return body;
   }
 
@@ -101,7 +151,9 @@ class ProxyChecker implements NetworkChecker {
     try {
       return await this.get<CheckOutcome>('check', { url, timeout: String(timeoutMs) }, timeoutMs);
     } catch (e) {
-      return { ok: false, latencyMs: 0, error: `proxy: ${errText(e)}` };
+      if (!(e instanceof ProxyDownError)) throw e;
+      // A broken proxy must not mark every site as down: check directly.
+      return this.direct.checkHttp(url, timeoutMs);
     }
   }
 
@@ -111,13 +163,13 @@ class ProxyChecker implements NetworkChecker {
   }
 }
 
-export function createChecker(webProxyUrl: string): NetworkChecker {
+export function createChecker(webProxyUrl: string, onProxyStatus?: (s: ProxyStatus) => void): NetworkChecker {
   if (isTauri) return new NativeChecker();
   const proxy = webProxyUrl.trim();
   if (proxy) {
     try {
       new URL(proxy);
-      return new ProxyChecker(proxy);
+      return new ProxyChecker(proxy, onProxyStatus);
     } catch {
       /* invalid proxy URL: fall through */
     }

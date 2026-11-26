@@ -122,6 +122,8 @@ export const uk: Dict = {
   'settings.webProxy': 'Адреса CORS / SSL проксі',
   'settings.webProxyHint': 'Необов’язково. Без проксі браузер бачить лише, чи відповідає сервер. Запустіть tools/pingrid-proxy.mjs, щоб отримувати коди відповіді й сертифікати.',
   'settings.storage': 'Сховище: {kind}',
+  'settings.proxyOk': 'Проксі відповідає',
+  'settings.proxyDown': 'Проксі не відповідає ({err}). Сайти перевіряються напряму, без сертифікатів; Pingrid пробує проксі знову щохвилини.',
   'settings.os': 'Системні сповіщення',
   'settings.osDenied': 'Сповіщення заблоковані. Дозвольте їх у налаштуваннях системи чи браузера.',
   'settings.sound': 'Звуковий сигнал',

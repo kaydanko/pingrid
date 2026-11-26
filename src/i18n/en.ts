@@ -120,6 +120,8 @@ export const en = {
   'settings.webProxy': 'CORS / SSL proxy URL',
   'settings.webProxyHint': 'Optional. Without it the browser only sees whether a host answers. Run tools/pingrid-proxy.mjs to get status codes and certificates.',
   'settings.storage': 'Storage: {kind}',
+  'settings.proxyOk': 'Proxy is answering',
+  'settings.proxyDown': 'Proxy is not answering ({err}). Sites are checked directly, without certificates; Pingrid tries the proxy again every minute.',
   'settings.os': 'System notifications',
   'settings.osDenied': 'Notifications are blocked. Allow them in system or browser settings.',
   'settings.sound': 'Sound chime',

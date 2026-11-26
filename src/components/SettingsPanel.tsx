@@ -31,6 +31,7 @@ export function SettingsPanel({ open, onClose, onDonate }: { open: boolean; onCl
   const settings = useApp((s) => s.settings);
   const resources = useApp((s) => s.resources);
   const storageKind = useApp((s) => s.storageKind);
+  const proxyStatus = useApp((s) => s.proxyStatus);
   const [tab, setTab] = useState<Tab>('general');
   const [perm, setPerm] = useState<OsPermission>('default');
   const [testing, setTesting] = useState<Channel | null>(null);
@@ -159,6 +160,12 @@ export function SettingsPanel({ open, onClose, onDonate }: { open: boolean; onCl
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
                 spellCheck={false}
               />
+              {settings.webProxyUrl && proxyStatus && (
+                <p role="status" className={cx('mt-2 flex items-start gap-1.5 text-xs leading-relaxed', proxyStatus.ok ? 'text-ok' : 'text-warn')}>
+                  <span className={cx('mt-1 size-1.5 shrink-0 rounded-full', proxyStatus.ok ? 'bg-ok' : 'bg-warn')} />
+                  {proxyStatus.ok ? t('settings.proxyOk') : t('settings.proxyDown', { err: proxyStatus.error ?? '' })}
+                </p>
+              )}
               <p className="mt-2 text-xs leading-relaxed text-muted">{t('settings.webProxyHint')}</p>
             </Section>
           )}

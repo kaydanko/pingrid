@@ -6,11 +6,14 @@ import { useSyncExternalStore } from 'react';
 import type { Resource, ResourceStatus, Settings } from '../types';
 import { DEFAULT_SETTINGS, emptyStatus, normalizeSettings } from './defaults';
 import { getStorage, type StorageAdapter } from '../platform/storageAdapter';
+import type { ProxyStatus } from '../platform/networkChecker';
 import { normalizeUrl } from './importExport';
 
 export interface AppState {
   ready: boolean;
   storageKind: StorageAdapter['kind'] | null;
+  /** Browser build with a proxy: is the proxy answering? null until the first call. */
+  proxyStatus: ProxyStatus | null;
   resources: Resource[];
   settings: Settings;
   statuses: Record<string, ResourceStatus>;
@@ -19,6 +22,7 @@ export interface AppState {
 let state: AppState = {
   ready: false,
   storageKind: null,
+  proxyStatus: null,
   resources: [],
   settings: DEFAULT_SETTINGS,
   statuses: {},
