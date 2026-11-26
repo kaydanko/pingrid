@@ -4,6 +4,8 @@
 
 Pingrid checks your sites and APIs, reads their TLS certificates directly, and fills any screen with an equal-tile status board, from an Android phone in portrait to a 4K monitor on the wall. It alerts you via OS notifications, Telegram, or a webhook when something goes down, comes back, or a certificate is about to expire.
 
+**Try it in your browser: [pingrid.syntrope.app](https://pingrid.syntrope.app).** Nothing to install, no account: your list and settings stay in that browser. The browser version sees whether a site answers; the [native apps](#download) also read certificates and keep checking while the window is hidden.
+
 One codebase, three targets:
 
 | Target | Shell | Storage | HTTP check | Certificates |
@@ -25,7 +27,7 @@ Ready builds are on the [**Releases**](https://github.com/kaydanko/pingrid/relea
 | **Linux** x86_64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_amd64.deb) (Debian, Ubuntu) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid-0.1.0-1.x86_64.rpm) (Fedora, RHEL) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_amd64.AppImage) (any distro) |
 | **Linux** arm64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_arm64.deb) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid-0.1.0-1.aarch64.rpm) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_aarch64.AppImage) |
 | **Android** (arm64, armv7) | [Pingrid_0.1.0_android_arm64-armv7.apk](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_android_arm64-armv7.apk) |
-| **Web / PWA** | [Pingrid_0.1.0_web-pwa.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_web-pwa.zip): unzip onto any static host |
+| **Web / PWA** | Open [**pingrid.syntrope.app**](https://pingrid.syntrope.app) (install it from the browser menu as an app), or host it yourself: [Pingrid_0.1.0_web-pwa.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_web-pwa.zip) |
 
 Checksums: [SHA256SUMS.txt](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/SHA256SUMS.txt). Put it next to the files you downloaded and run `shasum -a 256 -c --ignore-missing SHA256SUMS.txt` (macOS) or `sha256sum -c --ignore-missing SHA256SUMS.txt` (Linux).
 
@@ -63,6 +65,13 @@ npm run preview      # serve dist/ on http://localhost:4173
 ```
 
 `dist/` is a static site. Host it anywhere (any static host, an nginx folder, a NAS). The service worker caches the app shell so it opens offline, and it can be installed as a PWA from the browser menu.
+
+The public copy at [pingrid.syntrope.app](https://pingrid.syntrope.app) is this `dist/` served as Cloudflare Workers static assets: no server code runs and nothing is stored, every check happens in the visitor's browser. Configuration: `deploy/cloudflare/wrangler.jsonc`. To publish a new version:
+
+```bash
+npm run build
+npx wrangler deploy -c deploy/cloudflare/wrangler.jsonc
+```
 
 ### Desktop (macOS / Windows / Linux)
 
@@ -218,6 +227,8 @@ HOST=0.0.0.0 PORT=8787 PINGRID_ALLOW_ORIGIN=https://pingrid.example.com \
 ```
 
 Then set **Settings → General → CORS / SSL proxy URL** to `http://127.0.0.1:8787`. The field saves when you leave it or press Enter.
+
+**With [pingrid.syntrope.app](https://pingrid.syntrope.app):** start the proxy with `PINGRID_ALLOW_ORIGIN=https://pingrid.syntrope.app`. Browsers also restrict public websites from reaching addresses on your own machine: Chromium blocks the requests to `127.0.0.1` unless the site is allowed to access your local network, and in a headless test it refused them outright. If the proxy does not respond from the public site, serve the web build from your own machine instead (unzip `Pingrid_0.1.0_web-pwa.zip` into any local static server) and add that address, for example `http://localhost:3000`, to `PINGRID_ALLOW_ORIGIN`. Pages on `localhost` are not affected.
 
 The proxy keeps other websites out in two ways. `/check` and `/tls` answer only pages from the origins in `PINGRID_ALLOW_ORIGIN` (by default the local Vite ports); requests without an `Origin` are refused. And it answers only when addressed by its own name: `127.0.0.1`, `localhost` or `[::1]` on its port, plus anything in `PINGRID_PROXY_HOSTS` (set it to the LAN name or IP when you bind to `0.0.0.0`). That blocks DNS rebinding, where a hostile site points its own domain at your machine to reach the proxy as if it were same-origin. Avoid `PINGRID_ALLOW_ORIGIN=*`: it lets any website you visit use the proxy to probe hosts reachable from that machine.
 
