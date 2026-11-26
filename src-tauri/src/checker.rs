@@ -43,23 +43,38 @@ pub struct HttpCheck {
     pub final_url: Option<String>,
 }
 
+/// Wrapper messages from hyper/reqwest that carry no information of their own.
+fn is_generic(msg: &str) -> bool {
+    msg.starts_with("client error") || msg.starts_with("error sending request") || msg.starts_with("error trying to connect")
+}
+
+/// Human-readable failure, most specific cause first.
+///
+/// reqwest's own message ("error sending request for url (…)") says nothing a
+/// tile can use and repeats the URL; the cause ("invalid peer certificate:
+/// Expired", "dns error: …", "Connection refused") sits at the end of the
+/// source chain. Tiles truncate, so the cause has to come first.
 fn describe(err: &reqwest::Error) -> String {
-    // Walk the source chain: the useful part ("certificate expired",
-    // "dns error", "connection refused") is usually a few levels down.
-    let mut msg = err.to_string();
+    let mut chain: Vec<String> = Vec::new();
     let mut src = std::error::Error::source(err);
     while let Some(s) = src {
         let part = s.to_string();
-        if !msg.contains(&part) {
-            msg.push_str(": ");
-            msg.push_str(&part);
+        if !part.is_empty() && !chain.iter().any(|c| c.contains(&part)) {
+            chain.push(part);
         }
         src = s.source();
     }
+    let cause = match chain.as_slice() {
+        [] => err.to_string(),
+        // The innermost cause, plus its immediate context when that adds
+        // something ("dns error" + "failed to lookup address information").
+        [.., ctx, last] if !last.contains(ctx.as_str()) && ctx.len() < 40 && !is_generic(ctx) => format!("{ctx}: {last}"),
+        [.., last] => last.clone(),
+    };
     if err.is_timeout() {
-        format!("timeout ({msg})")
+        format!("timeout: {cause}")
     } else {
-        msg
+        cause
     }
 }
 
@@ -169,6 +184,12 @@ mod tests {
         assert!(up.ok, "{:?}", up.error);
         let down = check_http("https://pingrid-demo.invalid".into(), Some(5_000)).await;
         assert!(!down.ok);
-        assert!(down.error.is_some());
+        let err = down.error.unwrap();
+        println!("dns failure  -> {err}");
+        assert!(!err.starts_with("error sending request"), "{err}");
+        let cert = check_http("https://expired.badssl.com".into(), Some(30_000)).await;
+        let err = cert.error.unwrap();
+        println!("expired cert -> {err}");
+        assert!(err.to_lowercase().contains("expired"), "{err}");
     }
 }

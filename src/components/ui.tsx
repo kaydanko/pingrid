@@ -154,8 +154,15 @@ export function Modal({
     };
     document.addEventListener('keydown', onKey);
     requestAnimationFrame(() => {
-      const first = panel.current?.querySelector<HTMLElement>('[data-autofocus], input, select, textarea, button');
-      first?.focus();
+      // One selector list would return the first match in document order,
+      // which is the header's Close button. Prefer the marked field, then the
+      // first form field, and only then any button.
+      const root = panel.current;
+      const target =
+        root?.querySelector<HTMLElement>('[data-autofocus]') ??
+        root?.querySelector<HTMLElement>('input:not([type=hidden]):not([disabled]), select, textarea') ??
+        root?.querySelector<HTMLElement>('button');
+      target?.focus({ preventScroll: true });
     });
     return () => {
       document.removeEventListener('keydown', onKey);
