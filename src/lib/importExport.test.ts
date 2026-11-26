@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeResources, parseImport, toCsv, toJson } from './importExport';
+import { applyImportedSettings, hasDestinations, mergeResources, parseImport, toCsv, toJson } from './importExport';
 import { DEFAULT_SETTINGS } from './defaults';
 import type { Resource } from '../types';
 
@@ -35,6 +35,22 @@ describe('import/export', () => {
     // Files exported before this column existed still import.
     const old = parseImport('old.csv', 'name,url,checkSsl,autoRenew,paused\nA,https://a.example,true,auto,false');
     expect(old.resources[0].intervalSec).toBeNull();
+  });
+
+  it('keeps your alert channels and proxy unless you opt in', () => {
+    const mine = { ...DEFAULT_SETTINGS, notify: { ...DEFAULT_SETTINGS.notify, webhook: { enabled: true, url: 'https://hooks.mine.example/x' } } };
+    const theirs = {
+      ...DEFAULT_SETTINGS,
+      intervalSec: 300 as const,
+      webProxyUrl: 'http://proxy.theirs.example',
+      notify: { ...DEFAULT_SETTINGS.notify, webhook: { enabled: true, url: 'https://collector.theirs.example' } },
+    };
+    expect(hasDestinations(theirs)).toBe(true);
+    const kept = applyImportedSettings(mine, theirs, false);
+    expect(kept.intervalSec).toBe(300);
+    expect(kept.notify.webhook.url).toBe('https://hooks.mine.example/x');
+    expect(kept.webProxyUrl).toBe('');
+    expect(applyImportedSettings(mine, theirs, true).notify.webhook.url).toBe('https://collector.theirs.example');
   });
 
   it('accepts a bare list of domains', () => {

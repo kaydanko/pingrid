@@ -7,7 +7,14 @@
  * trust and set its URL in Settings → General → CORS / SSL proxy.
  *
  *   node tools/pingrid-proxy.mjs                    # http://127.0.0.1:8787
- *   PORT=9000 HOST=0.0.0.0 PINGRID_ALLOW_ORIGIN=https://pingrid.example.com node tools/pingrid-proxy.mjs
+ *   PORT=9000 HOST=0.0.0.0 PINGRID_ALLOW_ORIGIN=https://pingrid.example.com \
+ *     PINGRID_PROXY_HOSTS=nas.local:9000 node tools/pingrid-proxy.mjs
+ *
+ * Two guards keep other websites out:
+ *   - Host: only 127.0.0.1 / localhost / [::1] on PORT, plus PINGRID_PROXY_HOSTS.
+ *     This stops DNS rebinding, where a hostile site re-points its own name
+ *     at this machine to talk to the proxy as if it were same-origin.
+ *   - Origin: /check and /tls answer only pages from PINGRID_ALLOW_ORIGIN.
  *
  * Endpoints (GET):
  *   /check?url=<url>&timeout=<ms>  -> { ok, status, latencyMs, error? }
@@ -26,6 +33,15 @@ const ALLOW = (process.env.PINGRID_ALLOW_ORIGIN || 'http://localhost:4173,http:/
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
+
+const HOSTS = new Set(
+  [`127.0.0.1:${PORT}`, `localhost:${PORT}`, `[::1]:${PORT}`, ...(process.env.PINGRID_PROXY_HOSTS || '').split(',')]
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean),
+);
+
+const hostAllowed = (host) => !!host && HOSTS.has(host.toLowerCase());
+const originAllowed = (origin) => ALLOW.includes('*') || (!!origin && ALLOW.includes(origin));
 
 function json(res, status, body, origin) {
   const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', Vary: 'Origin' };
@@ -94,10 +110,15 @@ function inspectTls(host, port, timeoutMs) {
 http
   .createServer(async (req, res) => {
     const origin = req.headers.origin;
+    if (!hostAllowed(req.headers.host)) return json(res, 403, { error: 'host not allowed' });
     if (req.method === 'OPTIONS') return json(res, 204, {}, origin);
     if (req.method !== 'GET') return json(res, 405, { error: 'GET only' }, origin);
     const u = new URL(req.url, 'http://proxy');
     const timeout = Math.min(60000, Math.max(1000, Number(u.searchParams.get('timeout')) || 10000));
+    // Probing endpoints need a known page origin; a missing Origin is refused too.
+    if ((u.pathname === '/check' || u.pathname === '/tls') && !originAllowed(origin)) {
+      return json(res, 403, { error: 'origin not allowed' }, origin);
+    }
     try {
       if (u.pathname === '/check') {
         const target = u.searchParams.get('url');
@@ -117,5 +138,5 @@ http
     }
   })
   .listen(PORT, HOST, () => {
-    console.log(`pingrid-proxy listening on http://${HOST}:${PORT}  (allowed origins: ${ALLOW.join(', ')})`);
+    console.log(`pingrid-proxy listening on http://${HOST}:${PORT}  (origins: ${ALLOW.join(', ')}; hosts: ${[...HOSTS].join(', ')})`);
   });

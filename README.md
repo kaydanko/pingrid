@@ -171,12 +171,13 @@ node tools/pingrid-proxy.mjs
 # pingrid-proxy listening on http://127.0.0.1:8787
 
 # Hosted PWA on your own domain, proxy reachable on the LAN:
-HOST=0.0.0.0 PORT=8787 PINGRID_ALLOW_ORIGIN=https://pingrid.example.com node tools/pingrid-proxy.mjs
+HOST=0.0.0.0 PORT=8787 PINGRID_ALLOW_ORIGIN=https://pingrid.example.com \
+  PINGRID_PROXY_HOSTS=nas.local:8787 node tools/pingrid-proxy.mjs
 ```
 
 Then set **Settings → General → CORS / SSL proxy URL** to `http://127.0.0.1:8787`. The field saves when you leave it or press Enter.
 
-The proxy only answers pages from the origins in `PINGRID_ALLOW_ORIGIN` (by default the local Vite ports). Avoid `*`: it would let any website you visit use the proxy to probe hosts reachable from that machine.
+The proxy keeps other websites out in two ways. `/check` and `/tls` answer only pages from the origins in `PINGRID_ALLOW_ORIGIN` (by default the local Vite ports); requests without an `Origin` are refused. And it answers only when addressed by its own name: `127.0.0.1`, `localhost` or `[::1]` on its port, plus anything in `PINGRID_PROXY_HOSTS` (set it to the LAN name or IP when you bind to `0.0.0.0`). That blocks DNS rebinding, where a hostile site points its own domain at your machine to reach the proxy as if it were same-origin. Avoid `PINGRID_ALLOW_ORIGIN=*`: it lets any website you visit use the proxy to probe hosts reachable from that machine.
 
 Proxy contract (if you want to write your own):
 
@@ -197,7 +198,7 @@ Everything lives on the device: SQLite file `pingrid.db` in the app data folder 
 
 - **Export JSON:** resources and all settings, including alert channels. The file contains your Telegram token and webhook URL, so treat it as a secret.
 - **Export CSV:** resources only, columns `name,url,checkSsl,autoRenew,paused,intervalSec` (`autoRenew` is `auto`, `manual`, or `auto-detect`; `intervalSec` is `30`, `60`, `300`, or empty for the default). Older CSVs without the last column still import.
-- **Import** JSON or CSV, either **merge** (skips URLs you already have) or **replace**. A CSV can also be a bare list like `My site,example.org`; missing schemes default to `https://`.
+- **Import** JSON or CSV, either **merge** (skips URLs you already have) or **replace**. Settings from a JSON file are applied, but your alert channels (Telegram, webhook) and proxy are kept unless you switch on **Also import alert channels and proxy**: a file from someone else must not be able to redirect your alerts. A CSV can also be a bare list like `My site,example.org`; missing schemes default to `https://`.
 
 This is how you move a setup between desktop, Android, and the PWA.
 

@@ -132,6 +132,21 @@ export function parseImport(fileName: string, text: string): ImportResult {
   return { resources };
 }
 
+/**
+ * Settings from an imported file. Where alerts go (Telegram, webhook, OS/sound
+ * switches) and the browser proxy are kept as they are unless the user opts
+ * in: a file from someone else must not be able to redirect alerts, which
+ * carry resource names and URLs, to its own endpoints.
+ */
+export function applyImportedSettings(current: Settings, imported: Settings, includeDestinations: boolean): Settings {
+  return includeDestinations ? imported : { ...imported, notify: current.notify, webProxyUrl: current.webProxyUrl };
+}
+
+/** Does the imported file try to set alert destinations or a proxy? */
+export function hasDestinations(s: Settings): boolean {
+  return !!(s.notify.telegram.botToken || s.notify.telegram.chatId || s.notify.webhook.url || s.webProxyUrl);
+}
+
 /** Merge imported resources into existing ones, de-duplicating by URL. */
 export function mergeResources(existing: Resource[], incoming: Resource[]): Resource[] {
   const byUrl = new Map(existing.map((r) => [r.url, r]));

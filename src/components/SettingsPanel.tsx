@@ -4,7 +4,7 @@ import { Button, FieldLabel, Modal, Segmented, Toggle, cx } from './ui';
 import { toast } from './toast';
 import { actions, useApp } from '../lib/store';
 import { demoResources } from '../lib/demo';
-import { download, mergeResources, parseImport, toCsv, toJson } from '../lib/importExport';
+import { applyImportedSettings, download, hasDestinations, mergeResources, parseImport, toCsv, toJson } from '../lib/importExport';
 import { dispatch, osPermission, requestOsPermission, testAlert, type Channel, type OsPermission } from '../platform/notifier';
 import { isTauri, platformLabel } from '../platform/env';
 import { useT } from '../hooks/useT';
@@ -34,6 +34,7 @@ export function SettingsPanel({ open, onClose, onDonate }: { open: boolean; onCl
   const [perm, setPerm] = useState<OsPermission>('default');
   const [testing, setTesting] = useState<Channel | null>(null);
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('merge');
+  const [importDest, setImportDest] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -67,8 +68,10 @@ export function SettingsPanel({ open, onClose, onDonate }: { open: boolean; onCl
       const { resources: incoming, settings: imported } = parseImport(file.name, text);
       if (importMode === 'replace') actions.replaceResources(incoming);
       else actions.addResources(mergeResources(resources, incoming).slice(resources.length));
-      if (imported) actions.setSettings(imported);
-      toast(t('settings.importDone', { n: incoming.length }), 'ok');
+      const keptDest = !!imported && !importDest && hasDestinations(imported);
+      if (imported) actions.setSettings((cur) => applyImportedSettings(cur, imported, importDest));
+      toast(t('settings.importDone', { n: incoming.length }) + (keptDest ? ` · ${t('settings.importKeptDest')}` : ''), 'ok');
+      setImportDest(false);
     } catch (e) {
       toast(t('settings.importFail', { err: e instanceof Error ? e.message : String(e) }), 'bad');
     }
@@ -338,6 +341,9 @@ export function SettingsPanel({ open, onClose, onDonate }: { open: boolean; onCl
                   e.target.value = '';
                 }}
               />
+            </div>
+            <div className="mt-3">
+              <Toggle checked={importDest} onChange={setImportDest} label={t('settings.importDest')} hint={t('settings.importDestHint')} />
             </div>
           </Section>
           <Section title={t('settings.demo')}>
