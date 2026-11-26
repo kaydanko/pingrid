@@ -17,6 +17,14 @@ export const uk: Dict = {
 
   'common.close': 'Закрити',
 
+  'interval.custom': 'Інше',
+  'interval.unitS': 'с',
+  'interval.unitM': 'хв',
+  'interval.tooShort': 'Не частіше ніж раз на 10 с',
+  'interval.tooLong': 'Не рідше ніж раз на 24 год',
+  'interval.whole': 'Лише ціле число секунд',
+  'interval.defaultMark': 'Типово',
+
   'donate.title': 'Підтримати Pingrid',
   'donate.body': 'Pingrid безкоштовний: без реклами, акаунтів і хмари. Якщо він стежить за чимось важливим для вас, закиньте на банку monobank скільки не шкода.',
   'donate.cta': 'Відкрити банку monobank',
@@ -89,8 +97,7 @@ export const uk: Dict = {
   'editor.autoExplain': '«Авто» не показує попереджень за 30 і 14 днів, зате б’є на сполох, коли лишається менше {n} днів: отже, поновлення не спрацювало.',
   'editor.paused': 'Призупинити перевірки',
   'editor.interval': 'Як часто перевіряти',
-  'editor.intervalDefault': 'Типово · {v}',
-  'editor.intervalHint': '«Типово» бере значення з Налаштування → Загальні, зараз це {v}.',
+  'editor.intervalHint': 'Крапкою позначено типову частоту ({v}) з Налаштування → Загальні. Ресурс на ній змінюватиметься разом із налаштуваннями.',
   'editor.save': 'Зберегти',
   'editor.cancel': 'Скасувати',
   'editor.delete': 'Видалити',

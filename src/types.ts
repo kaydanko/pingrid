@@ -1,6 +1,7 @@
 export type Lang = 'uk' | 'en';
 export type Theme = 'dark' | 'light';
-export type IntervalSec = 30 | 60 | 300;
+/** Check interval in whole seconds, 10 s … 24 h (see MIN/MAX_INTERVAL_SEC in engine/rules). */
+export type IntervalSec = number;
 
 /** A monitored endpoint. Persisted. */
 export interface Resource {

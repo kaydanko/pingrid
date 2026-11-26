@@ -1,4 +1,5 @@
 import type { ResourceStatus, Settings } from '../types';
+import { isIntervalSec } from '../engine/rules';
 
 export const DEFAULT_SETTINGS: Settings = {
   lang: 'uk',
@@ -30,7 +31,7 @@ export function normalizeSettings(raw: unknown): Settings {
   return {
     lang: s.lang === 'en' || s.lang === 'uk' ? s.lang : d.lang,
     theme: s.theme === 'light' || s.theme === 'dark' ? s.theme : d.theme,
-    intervalSec: s.intervalSec === 30 || s.intervalSec === 60 || s.intervalSec === 300 ? s.intervalSec : d.intervalSec,
+    intervalSec: isIntervalSec(s.intervalSec) ? s.intervalSec : d.intervalSec,
     timeoutMs: num(s.timeoutMs, d.timeoutMs, 2000, 60000),
     prioritySort: typeof s.prioritySort === 'boolean' ? s.prioritySort : d.prioritySort,
     keepAwake: typeof s.keepAwake === 'boolean' ? s.keepAwake : d.keepAwake,

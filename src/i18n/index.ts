@@ -42,10 +42,14 @@ export function formatDuration(lang: Lang, ms: number): string {
   return h % 24 ? `${t('unit.d', { n: d })} ${t('unit.h', { n: h % 24 })}` : t('unit.d', { n: d });
 }
 
-/** 30 → "30 с", 300 → "5 хв". */
+/** 30 → "30 с", 120 → "2 хв", 90 → "1 хв 30 с", 3600 → "1 год". Exact, never rounded. */
 export function formatInterval(lang: Lang, sec: number): string {
   const t = makeT(lang);
-  return sec < 60 ? t('unit.s', { n: sec }) : t('unit.m', { n: Math.round(sec / 60) });
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  const parts = [h && t('unit.h', { n: h }), m && t('unit.m', { n: m }), s && t('unit.s', { n: s })].filter(Boolean);
+  return parts.length ? parts.join(' ') : t('unit.s', { n: 0 });
 }
 
 export function formatDate(lang: Lang, ts: number, withTime = false): string {

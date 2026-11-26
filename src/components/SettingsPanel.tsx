@@ -8,7 +8,8 @@ import { applyImportedSettings, download, hasDestinations, mergeResources, parse
 import { dispatch, osPermission, requestOsPermission, testAlert, type Channel, type OsPermission } from '../platform/notifier';
 import { isTauri, platformLabel } from '../platform/env';
 import { useT } from '../hooks/useT';
-import type { IntervalSec, Settings } from '../types';
+import type { Settings } from '../types';
+import { IntervalPicker } from './IntervalPicker';
 
 type Tab = 'general' | 'alerts' | 'data';
 const THRESHOLD_CHOICES = [60, 30, 21, 14, 7, 5, 3, 2, 1];
@@ -102,15 +103,7 @@ export function SettingsPanel({ open, onClose, onDonate }: { open: boolean; onCl
       {tab === 'general' && (
         <div>
           <Section title={t('settings.interval')}>
-            <Segmented<IntervalSec>
-              value={settings.intervalSec}
-              onChange={(v) => set({ intervalSec: v })}
-              options={[
-                { value: 30, label: t('unit.s', { n: 30 }) },
-                { value: 60, label: t('unit.m', { n: 1 }) },
-                { value: 300, label: t('unit.m', { n: 5 }) },
-              ]}
-            />
+            <IntervalPicker ariaLabel={t('settings.interval')} value={settings.intervalSec} onChange={(v) => set({ intervalSec: v })} />
             <p className="mt-2 text-xs leading-relaxed text-muted">{t('settings.intervalHint')}</p>
           </Section>
           <Section title={t('settings.timeout')}>

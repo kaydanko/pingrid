@@ -71,8 +71,15 @@ describe('per-resource interval', () => {
     expect(effectiveInterval({}, global)).toBe(60);
     expect(effectiveInterval({ intervalSec: null }, global)).toBe(60);
     expect(effectiveInterval({ intervalSec: 300 }, global)).toBe(300);
-    // Garbage from an old or hand-edited import is ignored.
-    expect(effectiveInterval({ intervalSec: 7 as never }, global)).toBe(60);
+    // Out of range or fractional values from a hand-edited import are ignored.
+    expect(effectiveInterval({ intervalSec: 7 }, global)).toBe(60);
+    expect(effectiveInterval({ intervalSec: 9 }, global)).toBe(60);
+    expect(effectiveInterval({ intervalSec: 12.5 }, global)).toBe(60);
+    expect(effectiveInterval({ intervalSec: 86_401 }, global)).toBe(60);
+    // Custom values in range are kept as they are.
+    expect(effectiveInterval({ intervalSec: 10 }, global)).toBe(10);
+    expect(effectiveInterval({ intervalSec: 90 }, global)).toBe(90);
+    expect(effectiveInterval({ intervalSec: 120 }, global)).toBe(120);
   });
 
   it('schedules each resource on its own interval', () => {

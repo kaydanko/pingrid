@@ -32,9 +32,14 @@ export function effectiveAutoRenew(r: Resource, ssl?: SslInfo): { auto: boolean;
 
 export const isHttps = (url: string) => /^https:\/\//i.test(url);
 
-export const INTERVAL_CHOICES: readonly IntervalSec[] = [30, 60, 300];
+/** Quick picks in the UI; any whole number of seconds in range is allowed. */
+export const INTERVAL_PRESETS: readonly IntervalSec[] = [30, 60, 120, 300];
+/** Faster than this hammers the target and overlaps the 15 s anti-flap retry. */
+export const MIN_INTERVAL_SEC = 10;
+export const MAX_INTERVAL_SEC = 86_400;
 
-export const isIntervalSec = (v: unknown): v is IntervalSec => INTERVAL_CHOICES.includes(v as IntervalSec);
+export const isIntervalSec = (v: unknown): v is IntervalSec =>
+  typeof v === 'number' && Number.isInteger(v) && v >= MIN_INTERVAL_SEC && v <= MAX_INTERVAL_SEC;
 
 /** The resource's own interval, else the global default. */
 export function effectiveInterval(r: Pick<Resource, 'intervalSec'>, settings: Pick<Settings, 'intervalSec'>): IntervalSec {

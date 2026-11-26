@@ -5,7 +5,8 @@ import { actions, useApp } from '../lib/store';
 import { normalizeUrl } from '../lib/importExport';
 import { uid } from '../lib/defaults';
 import { monitor } from '../engine/monitor';
-import { daysLeft, INTERVAL_CHOICES, isAutoIssuer, isHttps, isIntervalSec, issuerLabel } from '../engine/rules';
+import { daysLeft, isAutoIssuer, isHttps, isIntervalSec, issuerLabel } from '../engine/rules';
+import { IntervalPicker } from './IntervalPicker';
 import { useLang, useT } from '../hooks/useT';
 import { daysWord, formatDate, formatInterval } from '../i18n';
 import type { IntervalSec, Resource, SslInfo } from '../types';
@@ -25,7 +26,9 @@ export function ResourceEditor({ id, open, onClose }: { id: string | null; open:
   const [checkSsl, setCheckSsl] = useState(true);
   const [renew, setRenew] = useState<RenewChoice>('detect');
   const [paused, setPaused] = useState(false);
-  const [interval, setInterval_] = useState<IntervalSec | 'default'>('default');
+  // null = follow the global default from Settings.
+  const [interval, setInterval_] = useState<IntervalSec | null>(null);
+  const [intervalOk, setIntervalOk] = useState(true);
   const [touched, setTouched] = useState(false);
   const [probe, setProbe] = useState<{ busy: boolean; ssl?: SslInfo; error?: string }>({ busy: false });
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -39,7 +42,8 @@ export function ResourceEditor({ id, open, onClose }: { id: string | null; open:
     setCheckSsl(existing?.checkSsl ?? true);
     setRenew(existing?.autoRenew === true ? 'auto' : existing?.autoRenew === false ? 'manual' : 'detect');
     setPaused(!!existing?.paused);
-    setInterval_(isIntervalSec(existing?.intervalSec) ? existing.intervalSec : 'default');
+    setInterval_(isIntervalSec(existing?.intervalSec) ? existing.intervalSec : null);
+    setIntervalOk(true);
     setTouched(false);
     setProbe({ busy: false });
     setConfirmDelete(false);
@@ -68,13 +72,13 @@ export function ResourceEditor({ id, open, onClose }: { id: string | null; open:
 
   const save = () => {
     setTouched(true);
-    if (!normalized) return;
+    if (!normalized || !intervalOk) return;
     const patch: Omit<Resource, 'id' | 'createdAt'> = {
       name: name.trim() || new URL(normalized).hostname,
       url: normalized,
       checkSsl: checkSsl && isHttps(normalized),
       autoRenew: renew === 'detect' ? null : renew === 'auto',
-      intervalSec: interval === 'default' ? null : interval,
+      intervalSec: interval,
       paused,
     };
     if (existing) {
@@ -117,7 +121,7 @@ export function ResourceEditor({ id, open, onClose }: { id: string | null; open:
           <Button variant="ghost" onClick={onClose}>
             {t('editor.cancel')}
           </Button>
-          <Button variant="primary" onClick={save} disabled={!url.trim()}>
+          <Button variant="primary" onClick={save} disabled={!url.trim() || !intervalOk}>
             {t('editor.save')}
           </Button>
         </>
@@ -223,14 +227,13 @@ export function ResourceEditor({ id, open, onClose }: { id: string | null; open:
 
         <div>
           <FieldLabel>{t('editor.interval')}</FieldLabel>
-          <Segmented<IntervalSec | 'default'>
+          <IntervalPicker
             ariaLabel={t('editor.interval')}
-            value={interval}
-            onChange={setInterval_}
-            options={[
-              { value: 'default', label: t('editor.intervalDefault', { v: formatInterval(lang, defaultInterval) }) },
-              ...INTERVAL_CHOICES.map((v) => ({ value: v, label: formatInterval(lang, v) })),
-            ]}
+            value={interval ?? defaultInterval}
+            defaultValue={defaultInterval}
+            // Choosing the default value means "follow Settings", like before.
+            onChange={(sec) => setInterval_(sec === defaultInterval ? null : sec)}
+            onValidityChange={setIntervalOk}
           />
           <p className="mt-2 text-xs leading-relaxed text-faint">{t('editor.intervalHint', { v: formatInterval(lang, defaultInterval) })}</p>
         </div>

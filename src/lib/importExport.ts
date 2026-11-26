@@ -91,7 +91,7 @@ function toResource(raw: Record<string, unknown>): Resource | null {
     checkSsl: raw.checkSsl === undefined ? url.startsWith('https:') : raw.checkSsl === true || raw.checkSsl === 'true',
     autoRenew: ar === true || ar === 'auto' || ar === 'true' ? true : ar === false || ar === 'manual' || ar === 'false' ? false : null,
     paused: raw.paused === true || raw.paused === 'true',
-    intervalSec: isIntervalSec(Number(raw.intervalSec)) ? (Number(raw.intervalSec) as Resource['intervalSec']) : null,
+    intervalSec: raw.intervalSec !== '' && isIntervalSec(Number(raw.intervalSec)) ? Number(raw.intervalSec) : null,
     createdAt: typeof raw.createdAt === 'number' ? raw.createdAt : Date.now(),
   };
 }

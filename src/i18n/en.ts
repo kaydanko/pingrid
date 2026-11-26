@@ -15,6 +15,14 @@ export const en = {
 
   'common.close': 'Close',
 
+  'interval.custom': 'Custom',
+  'interval.unitS': 'sec',
+  'interval.unitM': 'min',
+  'interval.tooShort': 'At most once every 10 s',
+  'interval.tooLong': 'At least once every 24 h',
+  'interval.whole': 'Whole seconds only',
+  'interval.defaultMark': 'Default',
+
   'donate.title': 'Support Pingrid',
   'donate.body': 'Pingrid is free: no ads, no accounts, no cloud. If it keeps an eye on something you care about, you can back its development on Patreon.',
   'donate.cta': 'Open Patreon',
@@ -87,8 +95,7 @@ export const en = {
   'editor.autoExplain': 'Auto hides the 30/14-day warnings and alerts urgently below {n} days, because by then renewal has clearly failed.',
   'editor.paused': 'Pause checks',
   'editor.interval': 'Check interval',
-  'editor.intervalDefault': 'Default · {v}',
-  'editor.intervalHint': 'Default follows Settings → General, now {v}.',
+  'editor.intervalHint': 'The dot marks the default ({v}) from Settings → General. A resource on the default follows changes there.',
   'editor.save': 'Save',
   'editor.cancel': 'Cancel',
   'editor.delete': 'Delete',

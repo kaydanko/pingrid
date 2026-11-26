@@ -90,8 +90,8 @@ For Google Play or public downloads, create your own release keystore and keep i
 
 1. Start the app. The board is empty, with **+ Add resource** and **Load demo resources**.
 2. Add a URL. On `https://` addresses Pingrid reads the certificate as soon as you leave the field and suggests **Auto** or **Manual** renewal from the issuer (Let's Encrypt, ZeroSSL, Google Trust Services, Amazon → Auto).
-3. Click any tile to edit it: give it its own check interval, pause it, or delete it. Hover a tile for **Check now**. A tile with its own interval shows it next to the last-check time.
-4. **Settings** (gear icon): default check interval (30 s / 1 min / 5 min), timeout, language, theme, alert channels, SSL thresholds, import/export.
+3. Click any tile to edit it: give it its own check interval (the value marked with a dot is the default from Settings; choosing it makes the resource follow the default again), pause it, or delete it. Hover a tile for **Check now**. A tile with its own interval shows it next to the last-check time.
+4. **Settings** (gear icon): default check interval (30 s, 1, 2 or 5 min, or any custom value from 10 s), timeout, language, theme, alert channels, SSL thresholds, import/export.
 
 Ukrainian is the default language. Switch with the **УКР | ENG** control in the top bar (or Settings → General). Everything in the interface and in alert messages is translated; resource names you typed stay as they are.
 
@@ -134,7 +134,7 @@ The renewal badge shows **Auto** or **Manual**. A dashed border means Pingrid in
 
 ## Monitoring & alert rules
 
-- **Polling:** each resource is checked on its own interval if it has one (30 s / 1 min / 5 min, set in the resource editor), otherwise on the default from Settings → General (1 min out of the box). A scheduler looks every 2 s for resources whose time has come, oldest first, at most 6 in parallel. New or edited resources are checked right away. A check is a `GET` that follows redirects. Latency is time to response headers on a fresh connection (DNS + TCP + TLS included). HTTP status below 400 means online.
+- **Polling:** each resource is checked on its own interval if it has one (30 s, 1, 2 or 5 min, or a custom value from 10 s to 24 h, set in the resource editor), otherwise on the default from Settings → General (1 min out of the box). The scheduler arms one timer for the earliest due check and sleeps until then; due resources run oldest first, at most 6 in parallel. New or edited resources are checked right away. A check is a `GET` that follows redirects. Latency is time to response headers on a fresh connection (DNS + TCP + TLS included). HTTP status below 400 means online.
 - **Anti-flapping:** a failed check does not alert. Pingrid retries after **15 s**; only a second consecutive failure marks the resource `OFFLINE` and fires the alert. The outage start time is the first failure.
 - **State transitions:** `ONLINE → OFFLINE` sends an alert. `OFFLINE → ONLINE` sends a recovery alert with the total downtime. Downtime survives app restarts.
 - **SSL schedule:** certificates are re-read every 6 h, every 30 min inside the last 7 days (to catch renewals), and 10 min after an error. Threshold rules run on every check, plus a timer set for the exact `notAfter` moment.
@@ -216,7 +216,7 @@ Everything lives on the device: SQLite file `pingrid.db` in the app data folder 
 **Settings → Data:**
 
 - **Export JSON:** resources and all settings, including alert channels. The file contains your Telegram token and webhook URL, so treat it as a secret.
-- **Export CSV:** resources only, columns `name,url,checkSsl,autoRenew,paused,intervalSec` (`autoRenew` is `auto`, `manual`, or `auto-detect`; `intervalSec` is `30`, `60`, `300`, or empty for the default). Older CSVs without the last column still import.
+- **Export CSV:** resources only, columns `name,url,checkSsl,autoRenew,paused,intervalSec` (`autoRenew` is `auto`, `manual`, or `auto-detect`; `intervalSec` is whole seconds from `10` to `86400`, or empty for the default). Older CSVs without the last column still import.
 - **Import** JSON or CSV, either **merge** (skips URLs you already have) or **replace**. Settings from a JSON file are applied, but your alert channels (Telegram, webhook) and proxy are kept unless you switch on **Also import alert channels and proxy**: a file from someone else must not be able to redirect your alerts. A CSV can also be a bare list like `My site,example.org`; missing schemes default to `https://`.
 
 This is how you move a setup between desktop, Android, and the PWA.
