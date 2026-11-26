@@ -1,7 +1,7 @@
 {
   "name": "pingrid",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pingrid — local-first uptime & SSL wallboard (Syntrope ecosystem)",
   "type": "module",
   "scripts": {

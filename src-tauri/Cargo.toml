@@ -1,6 +1,6 @@
 [package]
 name = "pingrid"
-version = "0.1.0"
+version = "0.1.1"
 description = "Pingrid — local-first uptime & SSL wallboard"
 authors = ["Syntrope"]
 license = "MIT"

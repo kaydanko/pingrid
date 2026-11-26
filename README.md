@@ -18,18 +18,18 @@ One codebase, three targets:
 
 ## Download
 
-Ready builds are on the [**Releases**](https://github.com/kaydanko/pingrid/releases/latest) page. Current version: [**0.1.0**](https://github.com/kaydanko/pingrid/releases/tag/v0.1.0).
+Ready builds are on the [**Releases**](https://github.com/kaydanko/pingrid/releases/latest) page. Current version: [**0.1.1**](https://github.com/kaydanko/pingrid/releases/tag/v0.1.1).
 
 | Platform | Download |
 |---|---|
-| **macOS** (Apple Silicon) | [Pingrid_0.1.0_aarch64_macOS.app.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_aarch64_macOS.app.zip) |
-| **Windows** x64 | [Installer (.exe)](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_x64-setup.exe) · [MSI](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_x64_en-US.msi) |
-| **Linux** x86_64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_amd64.deb) (Debian, Ubuntu) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid-0.1.0-1.x86_64.rpm) (Fedora, RHEL) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_amd64.AppImage) (any distro) |
-| **Linux** arm64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_arm64.deb) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid-0.1.0-1.aarch64.rpm) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_aarch64.AppImage) |
-| **Android** (arm64, armv7) | [Pingrid_0.1.0_android_arm64-armv7.apk](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_android_arm64-armv7.apk) |
-| **Web / PWA** | Open [**pingrid.syntrope.app**](https://pingrid.syntrope.app) (install it from the browser menu as an app), or host it yourself: [Pingrid_0.1.0_web-pwa.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_web-pwa.zip) |
+| **macOS** (Apple Silicon) | [Pingrid_0.1.1_aarch64_macOS.app.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_aarch64_macOS.app.zip) |
+| **Windows** x64 | [Installer (.exe)](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_x64-setup.exe) · [MSI](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_x64_en-US.msi) |
+| **Linux** x86_64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_amd64.deb) (Debian, Ubuntu) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid-0.1.1-1.x86_64.rpm) (Fedora, RHEL) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_amd64.AppImage) (any distro) |
+| **Linux** arm64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_arm64.deb) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid-0.1.1-1.aarch64.rpm) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_aarch64.AppImage) |
+| **Android** (arm64, armv7) | [Pingrid_0.1.1_android_arm64-armv7.apk](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_android_arm64-armv7.apk) |
+| **Web / PWA** | Open [**pingrid.syntrope.app**](https://pingrid.syntrope.app) (install it from the browser menu as an app), or host it yourself: [Pingrid_0.1.1_web-pwa.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/Pingrid_0.1.1_web-pwa.zip) |
 
-Checksums: [SHA256SUMS.txt](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/SHA256SUMS.txt). Put it next to the files you downloaded and run `shasum -a 256 -c --ignore-missing SHA256SUMS.txt` (macOS) or `sha256sum -c --ignore-missing SHA256SUMS.txt` (Linux).
+Checksums: [SHA256SUMS.txt](https://github.com/kaydanko/pingrid/releases/download/v0.1.1/SHA256SUMS.txt). Put it next to the files you downloaded and run `shasum -a 256 -c --ignore-missing SHA256SUMS.txt` (macOS) or `sha256sum -c --ignore-missing SHA256SUMS.txt` (Linux).
 
 The builds are not code-signed yet, so the first launch needs one extra step:
 
@@ -228,7 +228,7 @@ HOST=0.0.0.0 PORT=8787 PINGRID_ALLOW_ORIGIN=https://pingrid.example.com \
 
 Then set **Settings → General → CORS / SSL proxy URL** to `http://127.0.0.1:8787`. The field saves when you leave it or press Enter.
 
-**With [pingrid.syntrope.app](https://pingrid.syntrope.app):** start the proxy with `PINGRID_ALLOW_ORIGIN=https://pingrid.syntrope.app`. Browsers also restrict public websites from reaching addresses on your own machine: Chromium blocks the requests to `127.0.0.1` unless the site is allowed to access your local network, and in a headless test it refused them outright. If the proxy does not respond from the public site, serve the web build from your own machine instead (unzip `Pingrid_0.1.0_web-pwa.zip` into any local static server) and add that address, for example `http://localhost:3000`, to `PINGRID_ALLOW_ORIGIN`. Pages on `localhost` are not affected.
+**With [pingrid.syntrope.app](https://pingrid.syntrope.app):** start the proxy with `PINGRID_ALLOW_ORIGIN=https://pingrid.syntrope.app`. Browsers also restrict public websites from reaching addresses on your own machine: Chromium blocks the requests to `127.0.0.1` unless the site is allowed to access your local network, and in a headless test it refused them outright. If the proxy does not respond from the public site, serve the web build from your own machine instead (unzip `Pingrid_0.1.1_web-pwa.zip` into any local static server) and add that address, for example `http://localhost:3000`, to `PINGRID_ALLOW_ORIGIN`. Pages on `localhost` are not affected.
 
 The proxy keeps other websites out in two ways. `/check` and `/tls` answer only pages from the origins in `PINGRID_ALLOW_ORIGIN` (by default the local Vite ports); requests without an `Origin` are refused. And it answers only when addressed by its own name: `127.0.0.1`, `localhost` or `[::1]` on its port, plus anything in `PINGRID_PROXY_HOSTS` (set it to the LAN name or IP when you bind to `0.0.0.0`). That blocks DNS rebinding, where a hostile site points its own domain at your machine to reach the proxy as if it were same-origin. Avoid `PINGRID_ALLOW_ORIGIN=*`: it lets any website you visit use the proxy to probe hosts reachable from that machine.
 
