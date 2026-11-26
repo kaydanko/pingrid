@@ -48,22 +48,41 @@ npm run tauri:dev    # native window with hot reload
 npm run tauri:build  # installers in src-tauri/target/release/bundle/
 ```
 
-Build on each OS for that OS's installers (`.app`/`.dmg`, `.msi`/`.exe`, `.deb`/`.rpm`/`.AppImage`). For macOS only the app bundle: `npm run tauri build -- --bundles app`.
+Tauri builds installers for the OS it runs on. Each platform has a ready path:
 
-The release profile uses `opt-level = "s"`, LTO, `panic = "abort"` and stripping, and the TLS stack uses the `ring` provider (no cmake/nasm). The macOS `.app` is 6.4 MB (see [Bundle size](#bundle-size)).
+| Platform | How | Output |
+|---|---|---|
+| **macOS** | `npm run tauri build -- --bundles app` (add `dmg` for a disk image) | `Pingrid.app` |
+| **Windows** | GitHub Actions: `.github/workflows/windows.yml`. Run it from the Actions tab or push a `v*` tag; it builds on `windows-latest`, checks the app starts, and uploads both installers as the `pingrid-windows-x64` artifact. | `Pingrid_<v>_x64_en-US.msi`, `Pingrid_<v>_x64-setup.exe` |
+| **Linux** | Any machine with Docker: `tools/docker/build-linux.sh amd64` (or `arm64`). Uses official `rust` + `node` Debian bookworm images. `tools/docker/smoke-linux.sh amd64` installs the `.deb` in a clean Debian and launches it on a virtual display. | `.deb`, `.rpm`, `.AppImage` in `artifacts/linux-<arch>/` |
+
+The release profile uses `opt-level = "s"`, LTO, `panic = "abort"` and stripping, and the TLS stack uses the `ring` provider (no cmake/nasm). Sizes are in [Bundle size](#bundle-size).
+
+None of the builds are code-signed yet: macOS Gatekeeper and Windows SmartScreen will warn on other machines until a Developer ID / Authenticode certificate is configured.
 
 ### Android
 
-Requires Android Studio, SDK, NDK, and `JAVA_HOME` set as described in the [Tauri Android guide](https://v2.tauri.app/start/prerequisites/#android).
+Requires Android Studio (SDK, NDK, its bundled JDK). The generated project is committed in `src-tauri/gen/android`.
 
 ```bash
-rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
-npm run android:init     # generates src-tauri/gen/android (once)
-npm run android:dev      # run on a device or emulator
-npm run android:build    # release APK
+export ANDROID_HOME=~/Library/Android/sdk
+export NDK_HOME=$ANDROID_HOME/ndk/<version>
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+rustup target add aarch64-linux-android armv7-linux-androideabi
+npm run android:dev                                            # device or emulator
+npx tauri android build --apk --target aarch64 --target armv7  # phones: arm64 + old 32-bit
 ```
 
-After `android:init`, make sure `src-tauri/gen/android/app/src/main/AndroidManifest.xml` has `<uses-permission android:name="android.permission.INTERNET" />` (Tauri adds it by default) and, for Android 13+, `POST_NOTIFICATIONS` (the notification plugin adds it).
+The release APK comes out **unsigned** (`src-tauri/gen/android/app/build/outputs/apk/universal/release/`). For your own phone or an emulator, sign it with the Android debug key:
+
+```bash
+BT=$ANDROID_HOME/build-tools/36.0.0
+$BT/zipalign -f -p 4 app-universal-release-unsigned.apk aligned.apk
+$BT/apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android \
+  --ks-key-alias androiddebugkey --key-pass pass:android --out Pingrid.apk aligned.apk
+```
+
+For Google Play or public downloads, create your own release keystore and keep it safe: every future update must be signed with the same key. The manifest already has `INTERNET` and, from the notification plugin, `POST_NOTIFICATIONS`.
 
 ---
 
@@ -248,7 +267,11 @@ cd src-tauri && cargo test -- --ignored    # live network tests for check_http a
 | Artifact | Size |
 |---|---|
 | Web build (`dist/`, fonts included) | ~0.65 MB, ~98 KB gzipped JS |
-| macOS `.app` (arm64, release) | 6.43 MB |
+| macOS `.app` (arm64) | 6.5 MB |
+| Windows `.msi` / NSIS `-setup.exe` (x64) | 3.7 MB / 2.9 MB (6.7 MB installed binary) |
+| Linux `.deb` / `.rpm` (x86_64, arm64) | 4.1–4.3 MB |
+| Linux `.AppImage` | 91–96 MB: it carries its own WebKitGTK, so it runs on distros without it |
+| Android APK (arm64 + armv7) | 16 MB |
 
 ## Resource use
 
