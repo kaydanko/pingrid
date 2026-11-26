@@ -14,7 +14,30 @@ One codebase, three targets:
 
 ---
 
-## Quick start
+## Download
+
+Ready builds are on the [**Releases**](https://github.com/kaydanko/pingrid/releases/latest) page. Current version: [**0.1.0**](https://github.com/kaydanko/pingrid/releases/tag/v0.1.0).
+
+| Platform | Download |
+|---|---|
+| **macOS** (Apple Silicon) | [Pingrid_0.1.0_aarch64_macOS.app.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_aarch64_macOS.app.zip) |
+| **Windows** x64 | [Installer (.exe)](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_x64-setup.exe) · [MSI](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_x64_en-US.msi) |
+| **Linux** x86_64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_amd64.deb) (Debian, Ubuntu) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid-0.1.0-1.x86_64.rpm) (Fedora, RHEL) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_amd64.AppImage) (any distro) |
+| **Linux** arm64 | [.deb](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_arm64.deb) · [.rpm](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid-0.1.0-1.aarch64.rpm) · [.AppImage](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_aarch64.AppImage) |
+| **Android** (arm64, armv7) | [Pingrid_0.1.0_android_arm64-armv7.apk](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_android_arm64-armv7.apk) |
+| **Web / PWA** | [Pingrid_0.1.0_web-pwa.zip](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/Pingrid_0.1.0_web-pwa.zip): unzip onto any static host |
+
+Checksums: [SHA256SUMS.txt](https://github.com/kaydanko/pingrid/releases/download/v0.1.0/SHA256SUMS.txt). Put it next to the files you downloaded and run `shasum -a 256 -c --ignore-missing SHA256SUMS.txt` (macOS) or `sha256sum -c --ignore-missing SHA256SUMS.txt` (Linux).
+
+The builds are not code-signed yet, so the first launch needs one extra step:
+
+- **macOS:** move Pingrid to Applications and open it once; then in **System Settings → Privacy & Security** choose **Open Anyway**.
+- **Windows:** if SmartScreen says "Windows protected your PC", choose **More info → Run anyway**.
+- **Android:** allow installing apps from your browser or file manager when Android asks. The APK is signed with a development key, so a later store build will need a reinstall.
+
+---
+
+## Build from source
 
 ### Prerequisites
 
