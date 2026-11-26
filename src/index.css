@@ -1,0 +1,276 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geologica/wght.css';
+@import '@fontsource/martian-mono/400.css';
+@import '@fontsource/martian-mono/600.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+  --font-sans: 'Geologica Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --color-bg: var(--v-bg);
+  --color-panel: var(--v-panel);
+  --color-raised: var(--v-raised);
+  --color-line: var(--v-line);
+  --color-line-strong: var(--v-line-strong);
+  --color-ink: var(--v-ink);
+  --color-muted: var(--v-muted);
+  --color-faint: var(--v-faint);
+  --color-ok: var(--v-ok);
+  --color-warn: var(--v-warn);
+  --color-bad: var(--v-bad);
+  --color-info: var(--v-info);
+
+  --animate-pulse-bad: pulse-bad 2.4s ease-in-out infinite;
+  --animate-blink: blink 1.2s steps(2, start) infinite;
+  --animate-rise: rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Tactical dark (default). Hues chosen for contrast on near-black, not for brand. */
+:root,
+[data-theme='dark'] {
+  --v-bg: #0a0c0f;
+  --v-panel: #0f1317;
+  --v-raised: #151a20;
+  --v-line: #1d242c;
+  --v-line-strong: #2b343e;
+  --v-ink: #e7ecf1;
+  --v-muted: #8593a1;
+  --v-faint: #4d5966;
+  --v-ok: #38e8a8;
+  --v-warn: #ffb547;
+  --v-bad: #ff4d5e;
+  --v-info: #6cb8ff;
+  --v-grid-dot: rgb(255 255 255 / 0.035);
+  --v-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 10px 30px -18px rgb(0 0 0 / 0.8);
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --v-bg: #eceee9;
+  --v-panel: #f8f9f6;
+  --v-raised: #ffffff;
+  --v-line: #d5d9d2;
+  --v-line-strong: #b9bfb6;
+  --v-ink: #0f1419;
+  --v-muted: #56616b;
+  --v-faint: #98a19a;
+  --v-ok: #0b8f60;
+  --v-warn: #b86a00;
+  --v-bad: #d0192f;
+  --v-info: #1f6fd1;
+  --v-grid-dot: rgb(0 0 0 / 0.06);
+  --v-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 8px 24px -16px rgb(20 30 20 / 0.35);
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--v-bg);
+  /* Faint plotting-paper dots: reads as an instrument, not a web page. */
+  background-image: radial-gradient(var(--v-grid-dot) 1px, transparent 1px);
+  background-size: 18px 18px;
+  color: var(--v-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: 'ss01', 'tnum';
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--v-ok) 35%, transparent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--v-line-strong) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--v-info);
+  outline-offset: 2px;
+}
+
+/* Only opacity is animated, on its own layer: the GPU compositor runs it
+   without repainting the tile. Animating box-shadow (blur) directly forced a
+   full repaint 60 times a second for as long as a resource was down. */
+@keyframes pulse-bad {
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes blink {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Tile: a container so type scales with the tile, from phone to 4K.  */
+/* ------------------------------------------------------------------ */
+
+.tile {
+  container-type: size;
+  position: relative;
+  --tone: var(--v-faint);
+  background:
+    linear-gradient(160deg, color-mix(in oklab, var(--tone) 9%, transparent), transparent 55%),
+    var(--v-panel);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--tone) 28%, var(--v-line)),
+    var(--v-shadow);
+  transition:
+    box-shadow 300ms ease,
+    background 300ms ease,
+    opacity 300ms ease;
+}
+
+.tile[data-tone='online'] {
+  --tone: var(--v-ok);
+}
+.tile[data-tone='warn'] {
+  --tone: var(--v-warn);
+}
+.tile[data-tone='critical'],
+.tile[data-tone='offline'] {
+  --tone: var(--v-bad);
+}
+.tile[data-tone='offline'] {
+  background:
+    linear-gradient(160deg, color-mix(in oklab, var(--v-bad) 16%, transparent), transparent 65%),
+    var(--v-panel);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--v-bad) 70%, transparent),
+    var(--v-shadow);
+}
+
+/* Static glow, faded in and out by the compositor. */
+.tile-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px var(--v-bad),
+    0 0 28px 2px color-mix(in oklab, var(--v-bad) 32%, transparent);
+  opacity: 0;
+  will-change: opacity;
+  animation: var(--animate-pulse-bad);
+}
+
+.blink {
+  will-change: opacity;
+  animation: var(--animate-blink);
+}
+.tile[data-tone='paused'] {
+  opacity: 0.5;
+}
+
+/* HUD corner brackets */
+.tile::before,
+.tile::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: color-mix(in oklab, var(--tone) 75%, transparent);
+}
+.tile::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+.tile::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+.t-name {
+  font-size: clamp(15px, 6.4cqmin, 46px);
+}
+.t-sub {
+  font-size: clamp(10.5px, 3.3cqmin, 20px);
+}
+.t-metric {
+  font-size: clamp(26px, 19cqmin, 150px);
+  line-height: 0.95;
+}
+.t-unit {
+  font-size: clamp(11px, 5cqmin, 40px);
+}
+.t-foot {
+  font-size: clamp(10.5px, 3.2cqmin, 20px);
+}
+.t-icon {
+  width: clamp(22px, 9cqmin, 64px);
+  height: clamp(22px, 9cqmin, 64px);
+}
+.t-pad {
+  padding: clamp(12px, 4.6cqmin, 36px);
+}
+
+/* Very short tiles (scroll mode on a phone): drop the sparkline. */
+@container (max-height: 190px) {
+  .t-spark {
+    display: none;
+  }
+}
+
+.field {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--v-line-strong);
+  background: var(--v-bg);
+  padding: 9px 11px;
+  font-size: 14px;
+  color: var(--v-ink);
+  transition: border-color 150ms;
+}
+.field::placeholder {
+  color: var(--v-faint);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--v-info);
+}
+
+.t-mono {
+  font-size: clamp(11px, 4.6cqmin, 34px);
+}
+
+/* Wallboards: scale the chrome so the top bar stays legible across a room. */
+@media (min-width: 2400px) and (min-height: 1300px) {
+  body > #root > div > header {
+    zoom: 1.6;
+  }
+}

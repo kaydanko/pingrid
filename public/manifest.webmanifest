@@ -1,0 +1,20 @@
+{
+  "name": "Pingrid — uptime & SSL wallboard",
+  "short_name": "Pingrid",
+  "description": "Local-first uptime and SSL certificate monitor. No accounts, no cloud.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#0a0c0f",
+  "theme_color": "#0a0c0f",
+  "lang": "uk",
+  "categories": ["utilities", "developer", "productivity"],
+  "icons": [
+    { "src": "/icon-256.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

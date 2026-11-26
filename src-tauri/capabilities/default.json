@@ -1,0 +1,28 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Pingrid main window: local SQLite, OS notifications, opening donation pages.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "sql:default",
+    "sql:allow-execute",
+    "notification:default",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://send.monobank.ua/*"
+        },
+        {
+          "url": "https://www.patreon.com/*"
+        },
+        {
+          "url": "https://patreon.com/*"
+        }
+      ]
+    }
+  ]
+}

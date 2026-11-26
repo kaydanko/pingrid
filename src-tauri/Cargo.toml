@@ -1,0 +1,51 @@
+[package]
+name = "pingrid"
+version = "0.1.0"
+description = "Pingrid — local-first uptime & SSL wallboard"
+authors = ["Syntrope"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+# `pingrid_lib` avoids a name clash with the bin target on Windows.
+name = "pingrid_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["net", "time", "macros"] }
+# ring provider everywhere: no cmake/nasm needed for Windows & Android cross builds.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-webpki-roots", "json", "http2", "charset"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12", "logging"] }
+webpki-roots = "1"
+x509-parser = "0.18"
+tauri-plugin-opener = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
+
+# Proc-macros (sqlx, serde, tauri) are host dylibs: stripping them breaks
+# dlopen on recent macOS linkers ("mis-aligned LINKEDIT string pool").
+[profile.release.build-override]
+strip = false
+debug = false
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# Native keep-awake for desktop wallboards (IOKit / SetThreadExecutionState / systemd-inhibit).
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+keepawake = "0.6"
